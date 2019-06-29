@@ -1,28 +1,23 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
-  </div>
+  <Paper />
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import HelloWorld from "./components/HelloWorld.vue";
+import Paper from "./components/Paper.vue";
 
-@Component({
-  components: {
-    HelloWorld
-  }
-})
+@Component({ components: { Paper } })
 export default class App extends Vue {}
 </script>
 
 <style lang="scss">
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+@import "https://fonts.googleapis.com/css?family=Sawarabi+Mincho";
+@import "https://fonts.googleapis.com/earlyaccess/kokoro.css";
+@import "https://fonts.googleapis.com/earlyaccess/hannari.css";
+@import "https://fonts.googleapis.com/css?family=Merriweather&display=swap";
+
+:root {
+  font: 20px "游明朝", "Merriweather", "Sawarabi Mincho", "Kokoro", "Hannari"; // さわらび明朝にバグあり
   color: #2c3e50;
   margin-top: 60px;
 }
