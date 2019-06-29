@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Paper from "./components/Paper.vue";
+import Paper from "./components/paper.vue";
 
 @Component({ components: { Paper } })
 export default class App extends Vue {}
@@ -20,5 +20,10 @@ export default class App extends Vue {}
   font: 20px "游明朝", "Merriweather", "Sawarabi Mincho", "Kokoro", "Hannari"; // さわらび明朝にバグあり
   color: #2c3e50;
   margin-top: 60px;
+}
+
+path {
+  stroke: #9b8;
+  stroke-width: 0.4;
 }
 </style>
