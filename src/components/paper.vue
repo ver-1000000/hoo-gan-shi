@@ -13,14 +13,7 @@
         ></g>
       </g>
     </svg>
-    <textarea
-      class="input-area"
-      cols="100"
-      rows="32"
-      v-model="script"
-      @input="input"
-    >
-    </textarea>
+    <textarea class="input-area" v-model="script" @input="input"></textarea>
   </article>
 </template>
 
@@ -56,6 +49,16 @@ export default class Paper extends Vue {
 <style scoped lang="scss">
 svg {
   border: 0.4px solid black;
+  box-sizing: border-box;
+  display: block;
+  margin: 1rem auto;
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 650px;
+  height: 200px;
+  padding: 0;
 }
 
 .bound {
