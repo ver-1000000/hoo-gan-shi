@@ -6,18 +6,18 @@
         <g
           is="VerticalLine"
           class="line"
-          :index="index"
-          :line="lines[index] || ''"
+          :line="verticalLine"
           :key="index"
+          :index="index"
           @textClick="textClick"
-          v-for="(n, index) in 20"
+          v-for="(verticalLine, index) in verticalLines"
         ></g>
       </g>
     </svg>
     <textarea
       class="input-area"
       cols="100"
-      rows="30"
+      rows="32"
       v-model="script"
       @input="input"
     >
@@ -29,17 +29,84 @@
 import { Component, Vue } from "vue-property-decorator";
 import VerticalLine from "./VerticalLine.vue";
 
+const 行頭禁則文字 = /[,)\x5D｝、〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～?!‼⁇⁈⁉・:;。.\x2F]/;
+
 interface InputEvent {
   target: { value: string };
 }
 
-const 行頭禁則文字 = /[,)\x5D｝、〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～?!‼⁇⁈⁉・:;。.\x2F]/;
+interface CombineChar {
+  char: string;
+  x: number;
+  y: number;
+}
+
+class Cell {
+  char = "";
+  paragraphNumber = 0;
+  combineChars: CombineChar[] = [];
+  position = 0;
+  constructor(opt?: Partial<Cell>) {
+    Object.assign(this, opt || {});
+  }
+}
+
+class Line {
+  cells: Cell[] = [];
+  internalCharLength = 0;
+  internalScript = "";
+  afterScript = "";
+  constructor(characters: string[]) {
+    const add = (i: number) => {
+      this.cells[i] = new Cell({ char: characters.shift() });
+      this.internalCharLength = (this.internalCharLength + 1) | 0;
+    };
+    const combineLast = (char = characters.shift() || "") => {
+      this.cells[19].combineChars.push({ char, x: 0, y: 0 });
+      this.internalCharLength = (this.internalCharLength + 1) | 0;
+    };
+    for (let i = 0; i < 20; i = (i + 1) | 0) {
+      if (characters[0] === "\n") {
+        characters.shift() || "";
+        this.cells = this.cells.concat(
+          Array.from(Array(20 - i), () => new Cell())
+        );
+        break;
+      }
+      // 現在の行に文字を足す
+      add(i);
+      if (i === 19) {
+        if (行頭禁則文字.test(characters[0])) combineLast();
+        if (行頭禁則文字.test(characters[0])) combineLast();
+        if (characters[0] === "\n") characters.shift();
+      }
+    }
+  }
+}
+
+class Script {
+  lines: Line[] = [];
+  constructor(script: string) {
+    const characters = Array.from(script);
+    for (let i = 0; i < 20; i = (i + 1) | 0) {
+      const line = new Line(characters);
+      this.lines.push(line);
+    }
+  }
+}
 
 @Component({ components: { VerticalLine } })
 export default class Paper extends Vue {
-  private script = localStorage.getItem("script") || "Hello, world!";
   private characters = Array.from(this.script.padEnd(400));
-  private lines: string[] = new Array(20);
+  private verticalLines: Line[] = new Script(this.script).lines;
+
+  private get script(): string {
+    return this.$store.state.script;
+  }
+
+  private set script(script: string) {
+    this.$store.commit("rewite", script);
+  }
 
   private textClick(e: any) {}
 
@@ -49,7 +116,6 @@ export default class Paper extends Vue {
 
   private input = (event: InputEvent) => {
     this.scriptToLines((this.script = event.target.value));
-    localStorage.setItem("script", this.script);
   };
 
   /**
@@ -57,34 +123,7 @@ export default class Paper extends Vue {
    * この時、禁則処理を済ませた行を作成する。
    */
   private scriptToLines = (script = this.script) => {
-    const characters = Array.from(script);
-    const lines: string[] = new Array(20).fill("");
-    for (let i = 0; i < 20; i = i + 1) {
-      // 文字がなければ行終了
-      if (characters.length === 0) {
-        break;
-      }
-      for (let j = 0; j < 20; j = j + 1) {
-        if (characters[0] === "\n") {
-          characters.shift() || "";
-          break;
-        }
-        // 現在の行に文字を足す
-        lines[i] += characters.shift() || "";
-        if (j === 19) {
-          if (行頭禁則文字.test(characters[0])) {
-            lines[i] += characters.shift() || "";
-          }
-          if (行頭禁則文字.test(characters[0])) {
-            lines[i] += characters.shift() || "";
-          }
-          if (characters[0] === "\n") {
-            characters.shift() || "";
-          }
-        }
-      }
-    }
-    this.lines.splice(0, Infinity, ...lines);
+    this.verticalLines.splice(0, Infinity, ...new Script(script).lines);
   };
 }
 </script>

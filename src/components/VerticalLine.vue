@@ -5,11 +5,11 @@
     <g
       is="Cell"
       class="cell"
-      :index="index"
-      :character="characters[index] || ''"
+      :cell="cell"
       :key="index"
+      :index="index"
       @textClick="textClick"
-      v-for="(n, index) in 20"
+      v-for="(cell, index) in line.cells"
     ></g>
   </g>
 </template>
@@ -18,20 +18,15 @@
 import { Component, Emit, Prop, Vue, Watch } from "vue-property-decorator";
 import Cell from "./Cell.vue";
 
+interface Line {
+  cells: any[];
+  internalCharLength: number;
+}
+
 @Component({ components: { Cell } })
 export default class VerticalLine extends Vue {
   @Prop({ default: 0 }) private index!: number;
-  @Prop({ default: "" }) private line!: string;
-  characters: string[] = [];
-  ligature = "";
-
-  @Watch("line")
-  private onLineChange(newLine: string, oldLine: string) {
-    this.characters = Array.from(newLine);
-    this.characters[
-      Math.min(this.characters.length - 1, 19)
-    ] += this.characters.splice(20, Infinity).join("");
-  }
+  @Prop() private line!: Line;
 
   @Emit("textClick")
   private textClick(value: any) {}

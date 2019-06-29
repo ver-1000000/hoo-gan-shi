@@ -1,7 +1,9 @@
 <template>
   <g :transform="'translate(-20, ' + Math.floor(index * 20) + ')'">
     <path d="m0 0h20" />
-    <text ref="text" x="10" dy="0,-5,-10" @click="click">{{ character }}</text>
+    <text ref="text" x="10" dy="0,-5,-10" @click="click">
+      {{ cell.char }}
+    </text>
   </g>
 </template>
 
@@ -11,7 +13,7 @@ import { Component, Emit, Prop, Vue } from "vue-property-decorator";
 @Component({})
 export default class Cell extends Vue {
   @Prop({ default: 0 }) private index!: number;
-  @Prop({ default: "" }) private character!: string;
+  @Prop() private cell!: any;
 
   @Emit("textClick")
   private clickEmit(value: any) {}
