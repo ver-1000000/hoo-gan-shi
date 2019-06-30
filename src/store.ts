@@ -1,20 +1,20 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import { Cell, Script } from "./classes";
+import { Cell, Line, Script } from "./classes";
 
 Vue.use(Vuex);
 
 interface State {
   script: Script;
   selectionStart: number;
-  currentCell: Cell;
+  currentLine: Line;
 }
 
 export default new Vuex.Store({
   state: {
     script: new Script(localStorage.getItem("script") || ""),
     selectionStart: 0,
-    currentCell: new Cell()
+    currentLine: new Line()
   } as State,
   mutations: {
     scriptRewrite(state, text: string) {
@@ -22,18 +22,18 @@ export default new Vuex.Store({
       localStorage.setItem("script", state.script.raw);
     },
     selectionStartChange(state, selectionStart: number) {
+      const line =
+        state.script.lines.find(
+          line =>
+            line.beforeAllCharLength + line.internalCharLength > selectionStart
+        ) || state.script.lines[0];
+      state.currentLine = line;
       state.selectionStart = selectionStart;
-    },
-    currentCellUpdate(state, cell: Cell) {
-      state.currentCell = cell;
     }
   },
   actions: {
     script(context, text: string) {
       context.commit("scriptRewrite", text);
-    },
-    currentCell(context, cell: Cell) {
-      context.commit("currentCellUpdate", cell);
     },
     selectionStart(context, selectionStart: number) {
       context.commit("selectionStartChange", selectionStart);

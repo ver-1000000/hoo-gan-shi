@@ -10,13 +10,16 @@ import { Component, Vue } from "vue-property-decorator";
 @Component({})
 export default class PaperCaret extends Vue {
   get lineIndex() {
-    return this.$store.state.currentCell.parent.index;
+    return this.$store.state.currentLine.index;
   }
   get cellIndex() {
-    return this.$store.state.currentCell.index;
+    const { currentLine, selectionStart } = this.$store.state;
+    return selectionStart - currentLine.beforeAllCharLength;
   }
   get transform() {
-    return `translate(${-30 * this.lineIndex}, ${20 * this.cellIndex})`;
+    const x = -30 * this.lineIndex;
+    const y = 20 * this.cellIndex - Math.max(this.cellIndex - 20, 0) * 11;
+    return `translate(${x}, ${y})`;
   }
 }
 </script>
@@ -30,7 +33,7 @@ path {
 
 @keyframes flash {
   from {
-    opacity: 0;
+    opacity: 0.5;
   }
   to {
     opacity: 1;

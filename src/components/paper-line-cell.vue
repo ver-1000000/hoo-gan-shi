@@ -26,7 +26,6 @@ export default class PaperLineCell extends Vue {
       "selectionStart",
       this.cell.index + this.cell.parent.beforeAllCharLength
     );
-    this.$store.dispatch("currentCell", this.cell);
   }
 }
 </script>

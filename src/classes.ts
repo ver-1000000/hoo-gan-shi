@@ -40,7 +40,10 @@ export class Line {
     const breakOnDetectReturn = (i: number) => {
       shiftAndAddLength();
       this.cells = this.cells.concat(
-        Array.from(Array(20 - i), () => new Cell({ parent: this }))
+        Array.from(
+          Array(20 - i),
+          (_, j) => new Cell({ parent: this, index: i + j })
+        )
       );
     };
     const addCharToCurrentLine = (i: number) => {
