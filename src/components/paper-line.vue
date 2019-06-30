@@ -10,6 +10,7 @@
       :index="index"
       v-for="(cell, index) in line.cells"
     ></g>
+    <text font-size="0.5rem">{{ line.beforeAllCharLength }}</text>
   </g>
 </template>
 

@@ -1,7 +1,8 @@
 <template>
-  <article>
+  <main>
     <svg height="440" width="650" viewBox="0 0 650 440">
       <rect class="bound" height="400" width="610" x="20" y="20"></rect>
+      <g is="PaperCaret" class="caret"></g>
       <g transform="translate(20, 20)">
         <g
           is="PaperLine"
@@ -13,35 +14,21 @@
         ></g>
       </g>
     </svg>
-    <textarea class="input-area" v-model="script" @input="input"></textarea>
-  </article>
+    <PaperInput />
+  </main>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Line } from "../classes";
+import PaperCaret from "./paper-caret.vue";
+import PaperInput from "./paper-input.vue";
 import PaperLine from "./paper-line.vue";
 
-interface InputEvent {
-  target: { value: string };
-}
-
-@Component({ components: { PaperLine } })
+@Component({ components: { PaperCaret, PaperInput, PaperLine } })
 export default class Paper extends Vue {
-  private get script(): string {
-    return this.$store.state.script.raw;
-  }
-
-  private set script(text: string) {
-    this.$store.commit("rewite", text);
-  }
-
   private get lines() {
     return this.$store.state.script.lines;
-  }
-
-  private input(event: InputEvent) {
-    this.script = event.target.value;
   }
 }
 </script>
@@ -52,13 +39,6 @@ svg {
   box-sizing: border-box;
   display: block;
   margin: 1rem auto;
-}
-
-textarea {
-  box-sizing: border-box;
-  width: 650px;
-  height: 200px;
-  padding: 0;
 }
 
 .bound {
