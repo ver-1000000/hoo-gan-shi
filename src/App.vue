@@ -17,7 +17,7 @@ export default class App extends Vue {}
 @import "https://fonts.googleapis.com/css?family=Merriweather&display=swap";
 
 :root {
-  color: #2c3e50;
+  color: #1c1c1d;
   font: 20px "游明朝", "Merriweather", "Sawarabi Mincho", "Kokoro", "Hannari"; // さわらび明朝にバグあり
   text-align: center;
 }

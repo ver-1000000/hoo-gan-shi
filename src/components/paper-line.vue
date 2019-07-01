@@ -1,5 +1,5 @@
 <template>
-  <g :transform="'translate(' + (600 - Math.floor(index * 30)) + ', 0)'">
+  <g :transform="'translate(' + (600 - Math.floor(line.index * 30)) + ', 0)'">
     <path d="m-20 0v400" />
     <path d="m0 0v400" />
     <g
@@ -10,7 +10,6 @@
       :index="index"
       v-for="(cell, index) in line.cells"
     ></g>
-    <text font-size="0.5rem">{{ line.beforeAllCharLength }}</text>
   </g>
 </template>
 
@@ -21,7 +20,6 @@ import PaperLineCell from "./paper-line-cell.vue";
 
 @Component({ components: { PaperLineCell } })
 export default class PaperLine extends Vue {
-  @Prop({ default: 0 }) private index!: number;
   @Prop() private line!: Line;
 }
 </script>

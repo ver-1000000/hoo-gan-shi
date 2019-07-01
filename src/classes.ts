@@ -10,12 +10,7 @@ export class Cell {
   char = "";
   combineChars: CombineChar[] = [];
   index = 0;
-  parent: Line = {
-    cells: [],
-    index: 0,
-    internalCharLength: 0,
-    beforeAllCharLength: 0
-  };
+  parent: Line = {} as Line;
   constructor(opt?: Partial<Cell>) {
     Object.assign(this, opt || {});
   }
@@ -33,41 +28,31 @@ export class Line {
   ) {
     this.index = index;
     this.beforeAllCharLength = beforeInternalCharLength;
-    const shiftAndAddLength = () => {
-      characters.shift();
+    // `characters`から文字を削除し、内部文字数を更新する。
+    const shiftedChar = () => {
       this.internalCharLength = (this.internalCharLength + 1) | 0;
+      return characters.shift() || "";
     };
+    // 改行文字が見つかった際に行う処理。 残りのセルを空文字で埋め、内部文字数を更新する。
     const breakOnDetectReturn = (i: number) => {
-      shiftAndAddLength();
-      this.cells = this.cells.concat(
-        Array.from(
-          Array(20 - i),
-          (_, j) => new Cell({ parent: this, index: i + j })
-        )
-      );
+      shiftedChar();
+      const parent = this;
+      const cell = (_: any, j: number) => new Cell({ parent, index: i + j });
+      this.cells = this.cells.concat(Array.from(Array(20 - i), cell));
     };
-    const addCharToCurrentLine = (i: number) => {
-      this.cells[i] = new Cell({
-        char: characters.shift() || "",
-        parent: this,
-        index: i
-      });
-      this.internalCharLength = (this.internalCharLength + 1) | 0;
-    };
-    const combineCharOnDetectKinsoku = (char = characters.shift() || "") => {
-      this.cells[19].combineChars.push({ char, x: 0, y: 0 });
-      this.internalCharLength = (this.internalCharLength + 1) | 0;
-    };
+    // 行末に行頭禁則文字があった場合、combineCharsにそれを追加し内部文字数を更新する。 TODO: xとyの扱い
+    const combineCharOnDetectKinsoku = (i: number) =>
+      this.cells[i].combineChars.push({ char: shiftedChar(), x: 0, y: 0 });
     for (let i = 0; i < 20; i = (i + 1) | 0) {
       if (characters[0] === "\n" || characters[0] == null) {
         breakOnDetectReturn(i);
         break;
       }
-      addCharToCurrentLine(i);
+      this.cells[i] = new Cell({ char: shiftedChar(), parent: this, index: i });
       if (i === 19) {
-        if (行頭禁則文字.test(characters[0])) combineCharOnDetectKinsoku();
-        if (行頭禁則文字.test(characters[0])) combineCharOnDetectKinsoku();
-        if (characters[0] === "\n") shiftAndAddLength();
+        if (行頭禁則文字.test(characters[0])) combineCharOnDetectKinsoku(i);
+        if (行頭禁則文字.test(characters[0])) combineCharOnDetectKinsoku(i);
+        if (characters[0] === "\n") shiftedChar();
       }
     }
   }
@@ -75,17 +60,18 @@ export class Line {
 
 export class Script {
   lines: Line[] = [];
+  internalCharLength = 0;
   raw = "";
   constructor(raw: string) {
     this.raw = raw;
     const characters = Array.from(raw);
     for (let i = 0; i < 20; i = (i + 1) | 0) {
       const beforeLine = this.lines[i - 1];
-      const beforeInternalCharLength = beforeLine
-        ? beforeLine.internalCharLength + beforeLine.beforeAllCharLength
-        : 0;
+      const beforeInternalCharLength =
+        i && beforeLine.internalCharLength + beforeLine.beforeAllCharLength;
       const line = new Line(characters, beforeInternalCharLength, i);
       this.lines.push(line);
+      this.internalCharLength += line.internalCharLength;
     }
   }
 }
