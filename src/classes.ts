@@ -65,7 +65,7 @@ export class Script {
   constructor(raw: string) {
     this.raw = raw;
     const characters = Array.from(raw);
-    for (let i = 0; i < 20; i = (i + 1) | 0) {
+    for (let i = 0; i < 60; i = (i + 1) | 0) {
       const beforeLine = this.lines[i - 1];
       const beforeInternalCharLength =
         i && beforeLine.internalCharLength + beforeLine.beforeAllCharLength;

@@ -88,7 +88,7 @@ export default class PaperInput extends Vue {
 <style scoped lang="scss">
 textarea {
   box-sizing: border-box;
-  width: 650px;
+  width: 100%;
   height: 200px;
   padding: 0;
 }
