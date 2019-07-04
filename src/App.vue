@@ -22,7 +22,10 @@ export default class App extends Vue {}
   text-align: center;
 }
 
-body {
+body,
+html,
+main {
+  height: 100%;
   margin: 0;
 }
 

@@ -1,6 +1,5 @@
 <template>
   <g
-    transform="translate(885, 0)"
     ref="g"
     v-show="caret.visibled"
     :class="{ 'no-animate': noAnimate }"

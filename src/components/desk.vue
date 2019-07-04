@@ -1,29 +1,24 @@
 <template>
   <main>
     <PaperInput />
-    <output>{{ charaLength - 1 }}</output>
     <svg viewBox="0 0 1200 460" tabindex="-1">
-      <g transform="translate(0, 30)">
+      <g transform="translate(0, 30)" :key="i" v-for="(page, i) in pages">
+        <image
+          xlink:href="~@/assets/paper-texture.png"
+          width="640"
+          height="430"
+          preserveAspectRatio="none"
+          y="-15"
+          :x="945 - i * 655"
+        />
         <g
           class="right"
           is="Paper"
-          transform="translate(930, 0)"
-          :characters="rightCharacters"
+          :transform="'translate(' + (960 - i * 655) + ', 0)'"
+          :characters="page"
         ></g>
-        <g
-          class="center"
-          is="Paper"
-          transform="translate(305, 0)"
-          :characters="centerCharacters"
-        ></g>
-        <g
-          class="left"
-          is="Paper"
-          transform="translate(-320, 0)"
-          :characters="leftCharacters"
-        ></g>
-        <g is="PaperCaret" class="caret"></g>
       </g>
+      <g class="caret" is="PaperCaret" transform="translate(885, 30)"></g>
     </svg>
   </main>
 </template>
@@ -40,6 +35,7 @@ export default class Desk extends Vue {
   private rightCharacters: Char[] = [];
   private centerCharacters: Char[] = [];
   private leftCharacters: Char[] = [];
+  private pages: [Char[], Char[], Char[]] = [[], [], []];
   private pageGap = 0;
 
   private get script() {
@@ -78,6 +74,11 @@ export default class Desk extends Vue {
     this.rightCharacters.splice(0, Infinity, ...slice(-20));
     this.centerCharacters.splice(0, Infinity, ...slice(0));
     this.leftCharacters.splice(0, Infinity, ...slice(20));
+    this.pages = [
+      this.rightCharacters,
+      this.centerCharacters,
+      this.leftCharacters
+    ];
   }
 
   private get charaLength() {
@@ -87,14 +88,14 @@ export default class Desk extends Vue {
 </script>
 
 <style scoped lang="scss">
-svg {
-  border: 0.4px solid black;
-  box-sizing: border-box;
-  display: block;
-  width: 100%;
+main {
+  background: url("~@/assets/desk-wood.jpg") no-repeat center / cover;
+  display: flex;
 }
 
-output {
+svg {
   display: block;
+  margin: auto;
+  width: 100%;
 }
 </style>
