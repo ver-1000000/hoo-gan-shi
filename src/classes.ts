@@ -62,7 +62,7 @@ export class Script {
   linePositionList = [0]; // 行が変わるcharのposition郡
   raw = "";
   update = (raw: string) => {
-    this.raw = raw;
+    localStorage.setItem("script", (this.raw = raw));
     this.characters = [];
     this.linePositionList = [0];
     let lineIndex = 0;
