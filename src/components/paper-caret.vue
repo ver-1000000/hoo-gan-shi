@@ -1,6 +1,6 @@
 <template>
   <g
-    ref="g"
+    class="caret"
     v-show="caret.visibled"
     :class="{ 'no-animate': noAnimate }"
     @transitionstart="noAnimate = true"
@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 
 @Component({})
 export default class PaperCaret extends Vue {
@@ -28,15 +28,21 @@ export default class PaperCaret extends Vue {
   get transform() {
     return `translate(${this.caret.x}, ${this.caret.y})`;
   }
+
+  @Watch("caret.selectionStart")
+  onSelectionStartChange(newValue: number, oldValue: number) {
+    this.noAnimate = true;
+    requestAnimationFrame(() => (this.noAnimate = false));
+  }
 }
 </script>
 
 <style scoped lang="scss">
-g {
-  animation: flash 1s 0.3s steps(1) infinite;
+.caret {
+  animation: flash 1s 1s steps(1) infinite;
 }
 
-.no-animate {
+.caret.no-animate {
   animation: none;
 }
 

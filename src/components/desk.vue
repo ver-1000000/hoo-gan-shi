@@ -12,13 +12,12 @@
           :x="945 - i * 655"
         />
         <g
-          class="right"
           is="Paper"
           :transform="'translate(' + (960 - i * 655) + ', 0)'"
           :characters="page"
         ></g>
       </g>
-      <g class="caret" is="PaperCaret" transform="translate(885, 30)"></g>
+      <g is="PaperCaret" transform="translate(885, 30)"></g>
     </svg>
   </main>
 </template>
