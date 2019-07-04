@@ -9,7 +9,11 @@
       @click="moveTo(char)"
       v-for="(char, i) in characters"
     >
-      <rect fill-opacity="0" width="20" height="20"></rect>
+      <rect
+        fill-opacity="0"
+        width="20"
+        :height="i === characters.length - 1 ? (20 - i) * 20 : 20"
+      ></rect>
       <text x="10">{{ char.value }}</text>
     </g>
     <g :key="i" v-for="(n, i) in 19">
@@ -37,5 +41,9 @@ export default class PaperLine extends Vue {
 text {
   fill: #1c1c1d;
   writing-mode: tb;
+}
+
+path {
+  pointer-events: none;
 }
 </style>
