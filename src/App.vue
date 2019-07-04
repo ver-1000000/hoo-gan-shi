@@ -1,12 +1,12 @@
 <template>
-  <Paper />
+  <Desk />
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Paper from "./components/paper.vue";
+import Desk from "./components/desk.vue";
 
-@Component({ components: { Paper } })
+@Component({ components: { Desk } })
 export default class App extends Vue {}
 </script>
 

@@ -1,14 +1,16 @@
 <template>
   <g
-    transform="translate(600, 21)"
-    v-show="caretVisibled"
+    transform="translate(885, 0)"
+    v-show="caret.visibled"
     :class="{ 'no-animate': noAnimate }"
     @transitionstart="noAnimate = true"
     @transitionend="noAnimate = false"
   >
-    <path d="m-1 -4v8" :transform="transform" />
-    <path d="m21 -4v8" :transform="transform" />
-    <path d="m-1 0h22" :transform="transform" />
+    <g :transform="transform">
+      <path d="m-1 -4v8" />
+      <path d="m21 -4v8" />
+      <path d="m-1 0h22" />
+    </g>
   </g>
 </template>
 
@@ -18,20 +20,11 @@ import { Component, Vue } from "vue-property-decorator";
 @Component({})
 export default class PaperCaret extends Vue {
   noAnimate = false;
-  get lineIndex() {
-    return this.$store.state.currentLine.index;
-  }
-  get cellIndex() {
-    const { currentLine, selectionStart } = this.$store.state;
-    return selectionStart - currentLine.beforeAllCharLength;
+  get caret() {
+    return this.$store.state.caret;
   }
   get transform() {
-    const x = -30 * this.lineIndex;
-    const y = 20 * this.cellIndex - Math.max(this.cellIndex - 20, 0) * 11;
-    return `translate(${x}, ${y})`;
-  }
-  get caretVisibled() {
-    return this.$store.state.caretVisibled;
+    return `translate(${this.caret.x}, ${this.caret.y})`;
   }
 }
 </script>

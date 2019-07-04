@@ -1,108 +1,100 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import { Cell, Line, Script } from "./classes";
+import { Caret, Char, Script } from "./classes";
 
 Vue.use(Vuex);
 
 interface State {
-  caretVIndex: number;
-  caretVisibled: boolean;
-  currentCell: Cell;
-  currentLine: Line;
+  caret: Caret;
   script: Script;
-  selectionStart: number;
 }
 
 export default new Vuex.Store({
   state: {
-    caretVIndex: 0,
-    caretVisibled: true,
-    currentCell: new Cell(),
-    currentLine: new Line(),
-    script: new Script(localStorage.getItem("script") || ""),
-    selectionStart: 0
+    caret: new Caret(),
+    script: new Script().update(localStorage.getItem("script") || "")
   } as State,
 
-  // TODO: 参照を切らない更新方法に切り替える
   mutations: {
-    caretVIndex(state, value: number) {
-      state.caretVIndex = value;
-    },
-    caretVisibled(state, value: boolean) {
-      state.caretVisibled = value;
-    },
-    currentCell(state, value: Cell) {
-      state.currentCell = value;
-    },
-    currentLine(state, value: Line) {
-      state.currentLine = value;
+    caret(state, value: Caret) {
+      state.caret.update(value);
     },
     script(state, value: string) {
-      state.script = new Script(value);
-      localStorage.setItem("script", state.script.raw);
-    },
-    selectionStart(state, value: number) {
-      state.selectionStart = value;
+      state.script.update(value);
     }
   },
 
   actions: {
     script(context, text: string) {
       context.commit("script", text);
-      const lines = context.state.script.lines;
-      const lastLine = lines[lines.length - 1];
-      const length = lastLine.internalCharLength + lastLine.beforeAllCharLength;
     },
+
     // selectionStartの値をもとに`currentCell`/`currentLine`/`selectionStart`を更新する
-    moveTo(context, selectionStartIndex: number) {
-      const lines = context.state.script.lines;
-      const sumLength = (x: Line) =>
-        x.beforeAllCharLength + x.internalCharLength;
-      const line =
-        lines.find(x => sumLength(x) > selectionStartIndex) || lines[0];
-      const currentCell =
-        line.cells[selectionStartIndex - line.beforeAllCharLength] ||
-        line.cells[line.cells.length - 1];
-      context.commit("caretVIndex", currentCell.index);
-      context.commit("currentLine", line);
-      context.commit("currentCell", currentCell);
-      context.commit("selectionStart", selectionStartIndex);
+    moveTo(context, positionOrChar: number | Char) {
+      const characters = context.state.script.characters;
+      const char =
+        typeof positionOrChar === "number"
+          ? characters[positionOrChar]
+          : positionOrChar;
+      if (char == null) return;
+      const x = (char.line % 20) * -30;
+      const y = char.index * 20;
+      const internalY = char.index;
+      const selectionStart = char.position;
+      context.commit("caret", { char, internalY, selectionStart, x, y });
     },
+
     // 右のセルに移動
     moveToRightCell(context) {
-      const { script, currentLine, caretVIndex } = context.state;
-      const rightLine = script.lines[currentLine.index - 1] || currentLine;
-      const rightCell = rightLine.cells[caretVIndex];
-      const rightCharLength = rightLine.internalCharLength - 1;
-      const rightCellIndex = rightCell.char ? rightCell.index : rightCharLength;
-      const selectionStart = rightCellIndex + rightLine.beforeAllCharLength;
+      // 変数のエイリアス宣言
+      const lpList = context.state.script.linePositionList;
+      const characters = context.state.script.characters;
+      const char = context.state.caret.char;
+      const internalY = context.state.caret.internalY;
+      // 以下`position`取得ロジック
+      const rightLineFirstPosition = lpList[char.line - 1] || 0;
+      const rightLineEndPosition = Math.max(char.position - char.index - 1, 0);
+      const rightLineEndChar = characters[rightLineEndPosition] || new Char();
+      const index = Math.min(rightLineEndChar.index, internalY);
+      const position = rightLineFirstPosition + index;
       context
-        .dispatch("moveTo", selectionStart)
-        .then(() => context.commit("caretVIndex", caretVIndex));
+        .dispatch("moveTo", position)
+        .then(() => context.commit("caret", { internalY }));
     },
+
     // 左のセルに移動
     moveToLeftCell(context) {
-      const { script, currentLine, caretVIndex } = context.state;
-      const leftLine = script.lines[currentLine.index + 1] || currentLine;
-      const leftCell = leftLine.cells[caretVIndex];
-      const leftCharLength = leftLine.internalCharLength - 1;
-      const leftCellIndex = leftCell.char ? leftCell.index : leftCharLength;
-      const selectionStart = leftCellIndex + leftLine.beforeAllCharLength;
+      // 変数のエイリアス宣言
+      const lpList = context.state.script.linePositionList;
+      const characters = context.state.script.characters;
+      const char = context.state.caret.char;
+      const internalY = context.state.caret.internalY;
+      // 以下`position`取得ロジック
+      const leftLineFirstPosition = lpList[char.line + 1];
+      // 次の行がなければ（現在末行なら）カレットは一番最後のセルに移動させる。
+      if (leftLineFirstPosition == null) {
+        context
+          .dispatch("moveTo", characters[characters.length - 1])
+          .then(() => context.commit("caret", { internalY }));
+        return;
+      }
+      const leftLineEndPosition = lpList[char.line + 2] || characters.length;
+      const leftLineEndChar = characters[leftLineEndPosition - 1];
+      const index = Math.min(leftLineEndChar.index, internalY);
+      const position = leftLineFirstPosition + index;
       context
-        .dispatch("moveTo", selectionStart)
-        .then(() => context.commit("caretVIndex", caretVIndex));
+        .dispatch("moveTo", position)
+        .then(() => context.commit("caret", { internalY }));
     },
+
     // 1つ前のセルに移動
     moveToBeforeCell(context) {
-      const selectionStart = Math.max(context.state.selectionStart - 1, 0);
-      context.dispatch("moveTo", selectionStart);
+      context.dispatch("moveTo", context.state.caret.char.position - 1);
     },
+
     // 1つ後のセルに移動
     moveToAfterCell(context) {
-      const selectionMaxLength = context.state.script.internalCharLength;
-      const afterSelectionStart = context.state.selectionStart + 1;
-      const selectionStart = Math.min(afterSelectionStart, selectionMaxLength);
-      context.dispatch("moveTo", selectionStart);
+      context.dispatch("moveTo", context.state.caret.char.position + 1);
     }
   }
 });

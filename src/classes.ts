@@ -1,77 +1,83 @@
 const 行頭禁則文字 = /[,)\x5D｝、〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～？！?!‼⁇⁈⁉・:;。.\x2F]/;
 
-interface CombineChar {
-  char: string;
-  x: number;
-  y: number;
-}
-
-export class Cell {
-  char = "";
-  combineChars: CombineChar[] = [];
-  index = 0;
-  parent: Line = {} as Line;
-  constructor(opt?: Partial<Cell>) {
-    Object.assign(this, opt || {});
+export class Caret {
+  char = new Char();
+  internalY = 0;
+  visibled = true;
+  selectionStart = 0;
+  x = 0;
+  y = 0;
+  update: (opt: Partial<Caret>) => Caret = (opt = {}) => {
+    Object.assign(this, opt);
+    return this;
+  };
+  constructor(opt: Partial<Caret> = {}) {
+    Object.assign(this, opt);
   }
 }
 
-export class Line {
-  cells: Cell[] = [];
+export class Char {
+  beforeChar: Partial<Char> = {};
+  br = false;
+  characters: Char[] = [];
   index = 0;
-  internalCharLength = 0; // 内包している文字(cell.charとcell.combineChars)の数
-  beforeAllCharLength = 0; // 1つ前のLineすべての`internalCharLength`を合算した数
-  constructor(
-    characters: string[] = [],
-    beforeInternalCharLength = 0,
-    index = 0
-  ) {
-    this.index = index;
-    this.beforeAllCharLength = beforeInternalCharLength;
-    // `characters`から文字を削除し、内部文字数を更新する。
-    const shiftedChar = () => {
-      this.internalCharLength = (this.internalCharLength + 1) | 0;
-      return characters.shift() || "";
-    };
-    // 改行文字が見つかった際に行う処理。 残りのセルを空文字で埋め、内部文字数を更新する。
-    const breakOnDetectReturn = (i: number) => {
-      shiftedChar();
-      const parent = this;
-      const cell = (_: any, j: number) => new Cell({ parent, index: i + j });
-      this.cells = this.cells.concat(Array.from(Array(20 - i), cell));
-    };
-    // 行末に行頭禁則文字があった場合、combineCharsにそれを追加し内部文字数を更新する。 TODO: xとyの扱い
-    const combineCharOnDetectKinsoku = (i: number) =>
-      this.cells[i].combineChars.push({ char: shiftedChar(), x: 0, y: 0 });
-    for (let i = 0; i < 20; i = (i + 1) | 0) {
-      if (characters[0] === "\n" || characters[0] == null) {
-        breakOnDetectReturn(i);
-        break;
-      }
-      this.cells[i] = new Cell({ char: shiftedChar(), parent: this, index: i });
-      if (i === 19) {
-        if (行頭禁則文字.test(characters[0])) combineCharOnDetectKinsoku(i);
-        if (行頭禁則文字.test(characters[0])) combineCharOnDetectKinsoku(i);
-        if (characters[0] === "\n") shiftedChar();
-      }
+  line = 0;
+  lineStartProhivition = false;
+  position = 0;
+  value = "";
+  id = `${this.line}-${this.index}-${this.value}`;
+  update = (value = this.value) => {
+    const beforeChar = this.characters[this.position - 1] || {};
+    if (this.beforeChar.id === beforeChar.id) return this;
+    this.beforeChar = beforeChar;
+    this.value = value;
+    this.lineStartProhivition = 行頭禁則文字.test(value);
+    this.position = beforeChar.position + 1;
+    // 前の文字の`br`を正しく更新する。
+    if (
+      (beforeChar.index >= 19 && !this.lineStartProhivition) ||
+      beforeChar.value === "\n"
+    )
+      beforeChar.br = true;
+    // 改行情報で行番号を更新する。
+    if (beforeChar.br) {
+      this.line = beforeChar.line + 1;
+      this.index = 0;
+    } else {
+      this.line = beforeChar.line;
+      this.index = beforeChar.index + 1;
     }
+    this.id = `${this.line}-${this.index}-${this.value}`;
+    const afterChar = this.characters[this.position + 1];
+    if (afterChar) afterChar.update();
+    return this;
+  };
+  constructor(opt: Partial<Char> = {}) {
+    Object.assign(this, opt);
   }
 }
 
 export class Script {
-  lines: Line[] = [];
-  internalCharLength = 0;
+  characters: Char[] = [];
+  linePositionList = [0]; // 行が変わるcharのposition郡
   raw = "";
-  constructor(raw: string) {
+  update = (raw: string) => {
     this.raw = raw;
-    const characters = Array.from(raw);
-    for (let i = 0; i < 60; i = (i + 1) | 0) {
-      const beforeLine = this.lines[i - 1];
-      const beforeInternalCharLength =
-        i && beforeLine.internalCharLength + beforeLine.beforeAllCharLength;
-      const line = new Line(characters, beforeInternalCharLength, i);
-      this.lines.push(line);
-      this.internalCharLength += line.internalCharLength;
-    }
+    this.characters = [];
+    this.linePositionList = [0];
+    let lineIndex = 0;
+    Array.from(raw + "\n", (value, position) => {
+      const char = new Char({ characters: this.characters, value, position });
+      this.characters.push(char);
+      char.update();
+      if (lineIndex < char.line) {
+        lineIndex = (lineIndex + 1) | 0;
+        this.linePositionList.push(char.position);
+      }
+    });
+    return this;
+  };
+  constructor(opt: Partial<String> = {}) {
+    Object.assign(this, opt);
   }
 }

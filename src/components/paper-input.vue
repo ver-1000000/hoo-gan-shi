@@ -4,8 +4,8 @@
     autofocus
     class="input-area"
     :value="script"
-    @keyup="updateScript"
     @keydown="arrowManipulation"
+    @keyup="updateScript"
     @blur="updateCaretVisibled"
     @focus="updateCaretVisibled"
     @compositionend="moveTo"
@@ -15,20 +15,16 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { Cell, Line, Script } from "../classes";
-
-interface InputEvent {
-  target: { value: string };
-}
+import { Script } from "../classes";
 
 @Component({})
 export default class PaperInput extends Vue {
   private mounted() {
     this.$store.watch(
-      (state, getters) => state.selectionStart,
+      (state, getters) => state.caret.char,
       (newValue, oldValue) => {
         const el = this.$refs.textarea as HTMLTextAreaElement;
-        el.setSelectionRange(newValue, newValue);
+        el.setSelectionRange(newValue.position, newValue.position);
         el.focus();
       }
     );
@@ -50,7 +46,7 @@ export default class PaperInput extends Vue {
   }
 
   /**
-   * 入力中の文字を`this.script`にリアルタイム反映させる。
+   * 入力中の文字を`this.script`にリアルタイム反映させる。 TODO: 差分検出で効率化
    */
   private updateScript(el: { target: HTMLTextAreaElement }) {
     if (el.target.value === this.script) return;
@@ -59,14 +55,14 @@ export default class PaperInput extends Vue {
   }
 
   /**
-   * 常にtextareaにフォーカスしててほしいので、blur時にtextareaにフォーカスを戻す。
+   * blur/focusのタイミングでキャレットの表示を更新する。
    */
   private updateCaretVisibled() {
-    const el = this.$refs.textarea as HTMLTextAreaElement;
-    this.moveTo({ target: el });
-    requestAnimationFrame(() =>
-      this.$store.commit("caretVisibled", el === document.activeElement)
-    );
+    requestAnimationFrame(() => {
+      const el = this.$refs.textarea as HTMLTextAreaElement;
+      if (document.activeElement instanceof SVGElement) el.focus();
+      this.$store.commit("caret", { visibled: el === document.activeElement });
+    });
   }
 
   /**
@@ -89,7 +85,7 @@ export default class PaperInput extends Vue {
 textarea {
   box-sizing: border-box;
   width: 100%;
-  height: 200px;
+  height: 100px;
   padding: 0;
 }
 </style>
