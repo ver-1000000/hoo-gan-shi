@@ -1,6 +1,7 @@
 <template>
   <g
     transform="translate(885, 0)"
+    ref="g"
     v-show="caret.visibled"
     :class="{ 'no-animate': noAnimate }"
     @transitionstart="noAnimate = true"
@@ -20,9 +21,11 @@ import { Component, Vue } from "vue-property-decorator";
 @Component({})
 export default class PaperCaret extends Vue {
   noAnimate = false;
+
   get caret() {
     return this.$store.state.caret;
   }
+
   get transform() {
     return `translate(${this.caret.x}, ${this.caret.y})`;
   }

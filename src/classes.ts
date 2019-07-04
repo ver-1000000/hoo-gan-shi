@@ -3,7 +3,7 @@ const 行頭禁則文字 = /[,)\x5D｝、〕〉》」』】〙〗〟’”｠»�
 export class Caret {
   char = new Char();
   internalY = 0;
-  visibled = true;
+  visibled = false;
   selectionStart = 0;
   x = 0;
   y = 0;

@@ -41,23 +41,20 @@ export default class Desk extends Vue {
   private centerCharacters: Char[] = [];
   private leftCharacters: Char[] = [];
   private pageGap = 0;
+
   private get script() {
     return this.$store.state.script;
   }
 
-  private get line() {
-    return this.$store.state.caret.char.line;
-  }
-
-  private get raw() {
-    return this.script.raw;
+  private get caret() {
+    return this.$store.state.caret;
   }
 
   private mounted() {
     this.detectPages();
   }
 
-  @Watch("line")
+  @Watch("caret.char.line")
   private lineUpdate(newValue: number, oldValue: number) {
     this.pageGap = Math.floor(newValue / 20) * 20;
   }
@@ -67,7 +64,7 @@ export default class Desk extends Vue {
     this.detectPages();
   }
 
-  @Watch("raw")
+  @Watch("script.raw")
   private detectPages(newValue?: string, oldValue?: string) {
     const slice = (i: number) => {
       i = i + this.pageGap;
