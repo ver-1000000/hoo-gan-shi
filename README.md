@@ -1,4 +1,4 @@
-# tategaki
+# Hoo-gan-shi -- フーガンシ
 
 ## Project setup
 ```
