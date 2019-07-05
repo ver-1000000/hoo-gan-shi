@@ -1,0 +1,48 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/project
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - npm-{{ checksum "package.json" }}
+      - run: npm install
+      - save_cache:
+          paths: node_modules
+          key: npm-{{ checksum "package.json" }}
+      - run: npm run build
+      - persist_to_workspace:
+          root: .
+          paths: dist
+  deploy:
+    working_directory: ~/project
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: ls | grep -v dist | xargs rm -rf
+      - run: mv dist/* ./
+      - run: git config user.name $GITHUB_NAME
+      - run: git config user.email $GITHUB_EMAIL
+      - run: git add -A
+      - run: git commit -m 'Deploy from CircleCi.'
+      - run: git push -f git@github.com:ver-1000000/hoo-gan-shi.git master:gh-pages
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+      - deploy:
+          requires: 
+            - build
+          filters:
+            branches:
+              only: master
